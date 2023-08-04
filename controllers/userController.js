@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const {User, Thought} = require('../models');
 
 module.exports = {
   async getUsers(req, res) {
@@ -32,7 +32,8 @@ module.exports = {
   },
   async deleteUser(req, res){
     try{
-        const dbUserData = await User.deleteOne({ _id: req.params.userId })
+        const dbUserData = await User.findOneAndRemove({ _id: req.params.userId })
+        await Thought.deleteMany({ _id: { $in: User.thoughts } });
         res.json(dbUserData)
     }catch (err){
         res.status(500).json(err);
@@ -40,7 +41,7 @@ module.exports = {
   },
   async updateUser (req, res){
     try{
-        const dbUserData = await User.updateOne({ _id: req.params.userId })
+        const dbUserData = await User.findOneAndUpdate({ _id: req.params.userId },{ $set: req.body },{ runValidators: true, new: true })
         res.json(dbUserData)
     }catch(err){
         res.status(500).json(err)
@@ -48,16 +49,34 @@ module.exports = {
   },
   async createFriend(req, res) {
     try {
-      const dbUserData = await User.create(req.body);
-      res.json(dbUserData);
+      const user = await User.findOneAndUpdate(
+        { _id: req.params.userId },
+        { $addToSet: { friends: req.body } },
+        { runValidators: true, new: true }
+      );
+
+      if (!user) {
+        return res.status(404).json({ message: 'No user with this id!' });
+      }
+
+      res.json(user);
     } catch (err) {
       res.status(500).json(err)
     }
   },
   async deleteFriend(req, res){
-    try{
-        const dbUserData = await User.deleteOne({ _id: req.params.friendId })
-        res.json(dbUserData)
+    try {
+      const user = await User.findOneAndUpdate(
+        { _id: req.params.userId },
+        { $pull: { friends: { friendId: req.params.friendId } } },
+        { runValidators: true, new: true }
+      )
+
+      if (!user) {
+        return res.status(404).json({ message: 'No user with this id!' });
+      }
+
+      res.json(user);
     }catch (err){
         res.status(500).json(err);
     }

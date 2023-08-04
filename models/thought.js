@@ -1,9 +1,10 @@
 const { Schema, model } = require('mongoose');
 
-const thoughtSchema = new mongoose.Schema(
+// , get: formatTime(createdAt)
+const thoughtSchema = new Schema(
     {
         thoughtText: {type: String, required: true, minLength:1, maxLength:280},
-        createdAt:{ type: Date, default: {currentTime:()=> Date.now()}, get: formatTime},
+        createdAt:{ type: Date, default: Date.now()},
         username:{type: String, required: true},
         reactions:[{type: Schema.Types.ObjectId, ref: 'Reaction',}]
     },
@@ -15,13 +16,13 @@ const thoughtSchema = new mongoose.Schema(
       }
 );
 
-userSchema.virtual('reactionCount').get(function(){
+thoughtSchema.virtual('reactionCount').get(function(){
     return this.reactions.length
 })
 
-function formatTime(createdAt){
-
-}
+// function formatTime(createdAt){
+//   console.log(createdAt)
+// }
 
 const Thought = model('thought', thoughtSchema);
 
