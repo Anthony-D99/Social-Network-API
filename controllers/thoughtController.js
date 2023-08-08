@@ -25,17 +25,17 @@ module.exports = {
   async createThought(req, res) {
     try {
       const dbThoughtData = await Thought.create(req.body);
-      // const user = await User.findOneAndUpdate(
-      //   { _id: req.body.userId },
-      //   { $addToSet: { thoughts: thought._id } },
-      //   { new: true }
-      // );
+      const user = await User.findOneAndUpdate(
+        { _id: req.body.userId },
+        { $addToSet: { thoughts: dbThoughtData._id } },
+        { new: true }
+      );
 
-      // if (!user) {
-      //   return res.status(404).json({
-      //     message: 'Thought created, but found no user with that ID',
-      //   });
-      // }
+      if (!user) {
+        return res.status(404).json({
+          message: 'Thought created, but found no user with that ID',
+        });
+      }
       res.json(dbThoughtData);
     } catch (err) {
       res.status(500).json(err)
@@ -50,17 +50,17 @@ module.exports = {
           return res.status(404).json({ message: 'No thought with this id!' });
         }
   
-        // const user = await User.findOneAndUpdate(
-        //   { thoughts: req.params.thoughtId },
-        //   { $pull: { thoughts: req.params.thoughtId } },
-        //   { new: true }
-        // );
+        const user = await User.findOneAndUpdate(
+          { thoughts: req.params.thoughtId },
+          { $pull: { thoughts: req.params.thoughtId } },
+          { new: true }
+        );
   
-        // if (!user) {
-        //   return res
-        //     .status(404)
-        //     .json({ message: 'thought deleted but no user with this id!' });
-        // }
+        if (!user) {
+          return res
+            .status(404)
+            .json({ message: 'thought deleted but no user with this id!' });
+        }
         res.json(dbThoughtData)
     }catch (err){
         res.status(500).json(err);
@@ -78,7 +78,7 @@ module.exports = {
     try {
       const thought = await Thought.findOneAndUpdate(
         { _id: req.params.thoughtId },
-        { $addToSet: { reactions: req.body } },
+        { $addToSet: { reactions: req.body} },
         { runValidators: true, new: true }
       );
       if (!thought) {
